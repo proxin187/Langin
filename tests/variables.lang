@@ -1,0 +1,8 @@
+
+main :: () -> int {
+    let test -> int = 4;
+    let test2 -> int = test + 69;
+    return 0;
+}
+
+

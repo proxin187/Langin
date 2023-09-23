@@ -1,0 +1,18 @@
+
+
+main :: () -> int {
+    let num -> int = 420;
+
+    # referece #
+    let num_pointer -> ptr = &num;
+
+    # dereference #
+    let num2 -> int = int[num_pointer];
+
+    # mutating pointer #
+    int[num_pointer] = int(0);
+
+    return 0;
+}
+
+

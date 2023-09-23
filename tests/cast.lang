@@ -1,0 +1,7 @@
+
+
+main :: () -> int {
+    let null -> ptr = ptr(0);
+    return 0;
+}
+

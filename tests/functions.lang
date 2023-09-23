@@ -1,0 +1,11 @@
+
+square :: (num -> int) -> int {
+    return num * num;
+}
+
+main :: () -> int {
+    let test -> int = square(2 + 3);
+    return 0;
+}
+
+

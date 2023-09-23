@@ -1,0 +1,44 @@
+
+
+square :: (num -> int) -> int {
+    return num * num;
+}
+
+#
+array_get(array -> ptr, t_size -> int, index -> int) -> ptr {
+    return ptr(int(array) + t_size * index)
+}
+#
+
+
+main :: () -> int {
+    let test -> int = 10 + 2 - 6;
+    test = 2;
+
+    let result -> int = square(test + 2);
+
+    let array -> ptr = &result;
+    int[array] = int(0);
+
+    #let array -> ptr = [69, 420];#
+    #let element -> int = int[array_get(array, I_SIZE, 1)]; #
+
+    # let test_p -> ptr = &test; #
+
+    # let t -> int = int[test_p]; #
+    #
+    while test != 10 {
+        test = test + 1;
+    }
+    #
+
+    #
+    if test == 42 {
+        return 69;
+    }
+    #
+
+    return test;
+}
+
+

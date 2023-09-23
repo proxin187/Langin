@@ -1,0 +1,10 @@
+
+main :: () -> int {
+    let test -> int = 4;
+    if test != 4 {
+        return test;
+    }
+    return 0;
+}
+
+

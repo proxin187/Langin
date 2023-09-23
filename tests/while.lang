@@ -1,0 +1,11 @@
+
+
+main :: () -> int {
+    let test -> int = 0;
+    while test != 10 {
+        test = test + 1;
+    }
+    return 0;
+}
+
+
