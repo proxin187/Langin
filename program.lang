@@ -12,8 +12,11 @@ array_get(array -> ptr, t_size -> int, index -> int) -> ptr {
 
 
 main :: () -> int {
-    let test -> int = 10 + 2 - 6;
+    let test2 -> int = 2;
+    let test -> int = 10 + test2 - 6;
     test = 2;
+
+    let test3 -> int = int(2) + 420;
 
     let result -> int = square(test + 2);
 

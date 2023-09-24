@@ -1,4 +1,6 @@
 use lib_lexin::Token;
+use crate::log_color;
+
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Type {
@@ -119,7 +121,7 @@ impl Ast {
         };
         *index += 1;
         if *index >= tokens.len() {
-            return Err(format!("{}:{}: expected `{}`", loc.0, loc.1, expected).into());
+            return Err(format!("{} expected `{}`", log_color(loc), expected).into());
         }
         return Ok(());
     }
@@ -134,14 +136,14 @@ impl Ast {
         } else if token.is_symbol("Slash").is_ok() {
             Ok(Operator::Divide)
         } else {
-            Err(format!("{}:{}: expected `operator`", loc.0, loc.1).into())
+            Err(format!("{} expected `operator`", log_color(loc)).into())
         }
     }
 
     fn single_expr(tokens: &Vec<Token>, loc: (usize, usize)) -> Result<Value, Box<dyn std::error::Error>> {
         let mut index = 0;
         if index >= tokens.len() {
-            return Err(format!("{}:{}: empty expression", loc.0, loc.1).into());
+            return Err(format!("{} empty expression", log_color(loc)).into());
         }
 
         if let Ok(integer) = tokens[index].is_integer() {
@@ -159,7 +161,7 @@ impl Ast {
             } else if tokens[index].is_symbol("OpenParen").is_ok() {
                 "CloseParen"
             } else {
-                return Err(format!("{}:{}: expected `OpenBracket`", loc.0, loc.1).into());
+                return Err(format!("{} expected `OpenBracket`", log_color(loc)).into());
             };
 
             Self::bound_check(tokens, &mut index, seperator_name)?;
@@ -216,7 +218,7 @@ impl Ast {
     fn expr(tokens: &Vec<Token>, loc: (usize, usize)) -> Result<Value, Box<dyn std::error::Error>> {
         let mut index = 0;
         if index >= tokens.len() {
-            return Err(format!("{}:{}: empty expression", loc.0, loc.1).into());
+            return Err(format!("{} empty expression", log_color(loc)).into());
         }
 
         if Self::is_function_call(tokens) {
@@ -226,7 +228,7 @@ impl Ast {
 
             Self::bound_check(tokens, &mut index, "OpenParen")?;
             if tokens[index].is_symbol("OpenParen").is_err() {
-                return Err(format!("{}:{}: expected `(` in function call", loc.0, loc.1).into());
+                return Err(format!("{} expected `(` in function call", log_color(loc)).into());
             }
 
             Self::bound_check(tokens, &mut index, "CloseParen")?;
@@ -302,7 +304,7 @@ impl Ast {
            sym2.0.is_symbol(sym2.1).is_err()
         {
             let loc = sym1.0.loc();
-            return Err(format!("{}:{}: expected `{}{}`", loc.0, loc.1, sym1.1, sym2.1).into());
+            return Err(format!("{} expected `{}{}`", log_color(loc), sym1.1, sym2.1).into());
         }
         return Ok(());
     }
@@ -314,7 +316,7 @@ impl Ast {
             return Ok("ptr");
         }
         let loc = token.loc();
-        return Err(format!("{}:{}: expected `type`", loc.0, loc.1).into());
+        return Err(format!("{} expected `type`", log_color(loc)).into());
     }
 
     fn str_to_type(str_t: &str) -> Type {
@@ -328,14 +330,14 @@ impl Ast {
     fn param(tokens: &Vec<Token>, global_loc: (usize, usize)) -> Result<(String, Type), Box<dyn std::error::Error>> {
         let mut index = 0;
         if tokens.len() == 0 {
-            return Err(format!("{}:{}: expected `ident`", global_loc.0, global_loc.1).into());
+            return Err(format!("{} expected `ident`", log_color(global_loc)).into());
         }
         // name -> type
         let name = match tokens[index].is_ident() {
             Ok(name) => name,
             Err(_) => {
                 let loc = tokens[index].loc();
-                return Err(format!("{}:{}: expected `ident`", loc.0, loc.1).into());
+                return Err(format!("{} expected `ident`", log_color(loc)).into());
             },
         };
 
@@ -379,7 +381,7 @@ impl Ast {
         } else if token.is_symbol("SThen").is_ok() {
             Ok(())
         } else {
-            Err(format!("{}:{}: expected `Comparison Operator`", loc.0, loc.1).into())
+            Err(format!("{} expected `Comparison Operator`", log_color(loc)).into())
         }
     }
 
@@ -394,13 +396,13 @@ impl Ast {
             return Ok(ComparisonOp::Smaller);
         } else {
             let loc = tokens[*index].loc();
-            return Err(format!("{}:{}: expected `Comparison Operator`", loc.0, loc.1).into());
+            return Err(format!("{} expected `Comparison Operator`", log_color(loc)).into());
         }
     }
 
     fn parse_comparison(tokens: &Vec<Token>, loc: (usize, usize)) -> Result<Comparison, Box<dyn std::error::Error>> {
         if tokens.len() == 0 {
-            return Err(format!("{}:{}: expected `Comparison`", loc.0, loc.1).into());
+            return Err(format!("{} expected `Comparison`", log_color(loc)).into());
         }
 
         let mut l_expr: Vec<Token> = Vec::new();
@@ -492,7 +494,7 @@ impl Ast {
                         }
                     } else {
                         let loc = tokens[index].loc();
-                        return Err(format!("{}:{}: expected `(` in function declaration", loc.0, loc.1, ).into());
+                        return Err(format!("{} expected `(` in function declaration", log_color(loc)).into());
                     }
                     Self::bound_check(tokens, &mut index, "Minus")?;
                     Self::bound_check(tokens, &mut index, "BThen")?;
@@ -506,7 +508,7 @@ impl Ast {
 
                     if tokens[index].is_symbol("OpenBrace").is_err() {
                         let loc = tokens[index].loc();
-                        return Err(format!("{}:{}: expected `{{` to start function body", loc.0, loc.1).into());
+                        return Err(format!("{} expected `{{` to start function body", log_color(loc)).into());
                     }
                     Self::bound_check(tokens, &mut index, "CloseBrace")?;
 
@@ -547,7 +549,7 @@ impl Ast {
                     ident
                 } else {
                     let loc = tokens[index].loc();
-                    return Err(format!("{}:{}: expected `ident` but got `{:?}`", loc.0, loc.1, tokens[index]).into());
+                    return Err(format!("{} expected `ident` but got `{:?}`", log_color(loc), tokens[index]).into());
                 };
                 Self::bound_check(tokens, &mut index, "Minus")?;
                 Self::bound_check(tokens, &mut index, "BThen")?;
@@ -563,7 +565,7 @@ impl Ast {
                 // =
                 if tokens[index].is_symbol("Equal").is_err() {
                     let loc = tokens[index].loc();
-                    return Err(format!("{}:{}: expected `=` in variable declaration", loc.0, loc.1).into());
+                    return Err(format!("{} expected `=` in variable declaration", log_color(loc)).into());
                 }
                 Self::bound_check(tokens, &mut index, "SemiColon")?;
 
@@ -691,7 +693,7 @@ impl Ast {
                 // [
                 Self::bound_check(tokens, &mut index, "OpenBracket")?;
                 if tokens[index].is_symbol("OpenBracket").is_err() {
-                    return Err(format!("{}:{}: expected `OpenBracket`", loc.0, loc.1).into());
+                    return Err(format!("{} expected `OpenBracket`", log_color(loc)).into());
                 }
 
                 Self::bound_check(tokens, &mut index, "Value")?;
@@ -706,7 +708,7 @@ impl Ast {
                 // =
                 Self::bound_check(tokens, &mut index, "Equal")?;
                 if tokens[index].is_symbol("Equal").is_err() {
-                    return Err(format!("{}:{}: expected `Equal`", loc.0, loc.1).into());
+                    return Err(format!("{} expected `Equal`", log_color(loc)).into());
                 }
 
                 Self::bound_check(tokens, &mut index, "Value")?;

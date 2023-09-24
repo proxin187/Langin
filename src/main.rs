@@ -6,6 +6,14 @@ mod typecheck;
 use argin::Argin;
 use std::process;
 
+const RED: &'static str = "\x1b[1;31m";
+const YELLOW: &'static str = "\x1b[1;33m";
+const RESET: &'static str = "\x1b[0;0m";
+
+fn log_color(loc: (usize, usize)) -> String {
+    return format!("{RED}{}{RESET}:{YELLOW}{}{RESET}:{RESET}", loc.0, loc.1);
+}
+
 fn cli() -> Argin {
     let mut args = Argin::new();
     args.add_positional_arg();
@@ -56,7 +64,7 @@ fn main() {
     }
     let parsed = parsed.unwrap();
 
-    //println!("ast: {:#?}", parsed);
+    // println!("ast: {:#?}", parsed);
 
     println!("[INFO]: type checking");
     let mut typechecker = typecheck::TypeChecker::new();

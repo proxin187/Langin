@@ -30,6 +30,7 @@ fn get_filename(file: &str) -> Result<&str, Box<dyn std::error::Error>> {
 impl CodeGen {
     pub fn new(filename: &str) -> Result<CodeGen, Box<dyn std::error::Error>> {
         let output_filename = format!("{}.asm", get_filename(filename)?);
+        println!("FILENAME: {}\nOUTPUT FILENAME: {}", filename, output_filename);
         return Ok(CodeGen {
             buffer: BufWriter::new(File::create(&output_filename)?),
             variables: HashMap::new(),
@@ -85,11 +86,11 @@ impl CodeGen {
                         write!(self.buffer, "    sub rax, [rbp-{}]\n", r_offset)?;
                     },
                     Operator::Multiplication => {
-                        write!(self.buffer, "    mov rax, [rbp-{}]\n", r_offset)?;
+                        write!(self.buffer, "    mov rbx, [rbp-{}]\n", r_offset)?;
                         write!(self.buffer, "    mul rbx\n")?;
                     },
                     Operator::Divide => {
-                        write!(self.buffer, "    mov rax, [rbp-{}]\n", r_offset)?;
+                        write!(self.buffer, "    mov rbx, [rbp-{}]\n", r_offset)?;
                         write!(self.buffer, "    div rbx\n")?;
                     },
                 }

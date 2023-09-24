@@ -1,15 +1,21 @@
 # Langin
+---
 
-## Warning: Langin is still in early development and may have bugs
+### *Warning: Langin is still in early development and may have bugs*
 
-A c-like compiled programming language.
+A c-like compiled programming language for low level development. 
 
+### Todo
+---
 - [x] Type checking
-- [ ] Standard library: there is currently no standard library
-- [ ] Self hosted: I have plans of it compiling itself
-- [ ] Assembly optimization
+- [ ] Native string implementation
+- [ ] Standard library
+- [ ] Self hosted compiler
+- [ ] Code generation optimization
+- [ ] Constant evaluation optimization
 
 ## Examples
+---
 
 Simple program that returns with 0 exit code:
 
@@ -19,7 +25,33 @@ main :: () -> int {
 }
 ```
 
+## Quick start
+---
+Instructions on how to get the Langin compiler up and running locally on your Linux system.
+#### Installing from Source
+---
+Clone the repository:
+
+```
+$ git clone https://github.com/proxin187/Langin
+```
+
+Run the tests to make sure the compiler is not broken (See [Testing](##Testing))
+
+Build the compiler:
+
+```
+$ sudo sh build.sh
+```
+
+#### Usage
+---
+```
+Usage: langin [FILE] [OPTIONS]
+    -r: run the final executable
+```
 ## Testing
+---
 
 Langin comes with tests provided to test if all the compiler features work correctly in the `./tests` folder. It is recommended to run the tests before building to compiler to be sure you have a working version of the compiler.
 
@@ -36,6 +68,7 @@ If all the tests ran successfully the output should look like this:
 ```
 
 ## Language specifications
+---
 
 In the language specifications you can find the specifications for syntax, types and behavior.
 
@@ -80,7 +113,7 @@ let num -> int = 34 + 35;
 
 #### If
 
-An if statement is a type of conditional block consisting of a condition and a body, if the condition is true the body will be executed and if the condition is false the body will be skipped.
+If statements in Langin work just like in any other language consisting of a condition and a body.
 
 Example:
 ```
@@ -92,21 +125,7 @@ if example != 69 {
 
 #### Else
 
-An else statement provides extended control flow for if statements, in the previous paragraph we talked about if statements only executing the body if a condition is true and it skipping the body if the condition is false, with an else statement it will execute the else body if the condition is false.
-
-Example:
-```
-let example -> int = 69;
-if example != 69 {
-    return 420;
-} else {
-    return 69;
-}
-```
-
-#### Else If
-
-In previous paragraphs i talked about if and else statements, these two are really the only thing you need and they are able to do any thing but if you have multiple conditions there will fast become a lot of nesting of if statements which will make your code unreadable and ugly, therefore else if statements prevent this nesting allowing your code to be both more readable and prettier.
+A else statement allows you to extend if statements by having a case only executed if all the previous conditions where false.
 
 Example:
 ```
@@ -122,7 +141,7 @@ if example != 69 {
 
 #### While
 
-While loops are a crucial part of programming because it allows the programmer to do things multiple times without repeating itself. while loops just like if statements consists of a condition and body, the while loop will continue to execute the body in a loop until the condition is false.
+A while loop just like if statements consists of a condition and body but what differs between them is that while loops will continue executing the body until the condition is false. 
 
 Example:
 ```
@@ -132,26 +151,51 @@ while example != 10 {
 }
 ```
 
+#### Pointers
+
+A pointer is a value pointing to a address, pointers have multiple use cases and is a core part of low level programming.
+
+Example:
+```
+let num -> int 420;
+let num_ptr -> ptr = &num; # reference #
+```
+
+#### Dereferencing
+
+In Langin pointers does not specify what type they are pointing to, this means the user will have to keep track of this when dereferencing a pointer.
+
+Example:
+```
+let dereferenced -> int = int[num_ptr];
+int[num_ptr] = 69;
+```
 
 #### Types
 
 | Type    | Description                                                                                  |
 | ---     | ---                                                                                          |
 | `int`   | 64bit unsigned integer.                                                 |
-| `ptr`  | pointer able point to any type.                                                     |
+| `ptr`  | pointer pointing to any type.                                                     |
 | `void`  | 0 bit type.                                                          |
 
 #### Operators
-
-Operators are used in the specified format: `lexpr [Op] rexpr`
 
 | Op    | Description                                                                                  |
 | ---     | ---                                                                                          |
 | `+`  | get the sum of two values.                                                 |
 | `-`  | subtract a value from another value.                                                     |
 | `*`  | multiply a value with another value.                                                          |
-| `/`  | Divide a value with another value.                                                          |
+| `/`  | divide a value with another value.                                                          |
 
+#### Comparison
+
+| Op    | Description                                                                                  |
+| ---     | ---                                                                                          |
+| `==`  | check if two values are equal.                                                 |
+| `!=`  | check if two values are unequal.                                                     |
+| `>`  | check if a value is bigger.                                                          |
+| `<`  | check if a value is smaller.                                                          |
 
 
 
