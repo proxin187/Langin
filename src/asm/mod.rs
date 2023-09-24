@@ -17,6 +17,7 @@ const REGISTERS: [&str; 6] = [
 pub struct CodeGen {
     buffer: BufWriter<File>,
     variables: HashMap<String, (usize, usize)>,
+    strings: Vec<String>,
     block_count: usize,
     stack_offset: usize,
     filename: String,
@@ -30,10 +31,10 @@ fn get_filename(file: &str) -> Result<&str, Box<dyn std::error::Error>> {
 impl CodeGen {
     pub fn new(filename: &str) -> Result<CodeGen, Box<dyn std::error::Error>> {
         let output_filename = format!("{}.asm", get_filename(filename)?);
-        println!("FILENAME: {}\nOUTPUT FILENAME: {}", filename, output_filename);
         return Ok(CodeGen {
             buffer: BufWriter::new(File::create(&output_filename)?),
             variables: HashMap::new(),
+            strings: Vec::new(),
             block_count: 1,
             stack_offset: 0,
             filename: output_filename,
@@ -54,6 +55,10 @@ impl CodeGen {
         self.buffer.write(b"    mov rax, 60\n")?;
         self.buffer.write(b"    syscall\n")?;
         self.buffer.write(b"segment readable writeable\n")?;
+        for (index, value) in self.strings.iter().enumerate() {
+            println!("STRING: {}", value);
+            write!(self.buffer, "str_{} db \"{}\", 0", index, value)?;
+        }
         return Ok(());
     }
 
@@ -117,6 +122,10 @@ impl CodeGen {
                 Ok(value)
             },
             Value::Int(integer) => Ok((format!("{}", integer), "integer".to_string())),
+            Value::Str(string) => {
+                self.strings.push(string.clone());
+                Ok((format!("str_{}", self.strings.len() - 1), "string".to_string()))
+            },
             Value::Ident(ident) => {
                 let var = self.variables.get(ident).unwrap();
                 Ok((format!("[rbp-{}]", var.0), format!("{}", var.0)))

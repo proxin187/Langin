@@ -19,6 +19,11 @@ pub fn lex(file: &str) -> Result<Vec<Token>, Box<dyn std::error::Error>> {
                 "#",
                 "#"
             ),
+            Section::new(
+                "string",
+                "\"",
+                "\""
+            ),
         ],
         &[
             (',', "Comma"),

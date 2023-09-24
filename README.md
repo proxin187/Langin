@@ -8,7 +8,7 @@ A c-like compiled programming language for low level development.
 ### Todo
 ---
 - [x] Type checking
-- [ ] Native string implementation
+- [x] Native string implementation
 - [ ] Standard library
 - [ ] Self hosted compiler
 - [ ] Code generation optimization
@@ -73,7 +73,7 @@ If all the tests ran successfully the output should look like this:
 In the language specifications you can find the specifications for syntax, types and behavior.
 
 #### Binary expressions
-
+---
 A binary expression is a math expression consisting of left/right expressions and an operator such as `+`, `-`, `*`, `/`
 
 Example:
@@ -91,7 +91,7 @@ Example:
 ```
 
 #### Functions
-
+---
 A function is a callable piece of code which can accept up to 6 arguments and can return a value back to the caller.
 
 Example:
@@ -103,7 +103,7 @@ square :: (num1 -> int, num2 -> int) -> int {
 ```
 
 #### Variables
-
+---
 A variable is a value paired with a identifier used to reference it, variables are used to store values and have easy access to them, in Langin variables are stored localy on the stack.
 
 Example:
@@ -112,7 +112,7 @@ let num -> int = 34 + 35;
 ```
 
 #### If
-
+---
 If statements in Langin work just like in any other language consisting of a condition and a body.
 
 Example:
@@ -124,7 +124,7 @@ if example != 69 {
 ```
 
 #### Else
-
+---
 A else statement allows you to extend if statements by having a case only executed if all the previous conditions where false.
 
 Example:
@@ -140,7 +140,7 @@ if example != 69 {
 ```
 
 #### While
-
+---
 A while loop just like if statements consists of a condition and body but what differs between them is that while loops will continue executing the body until the condition is false. 
 
 Example:
@@ -152,7 +152,7 @@ while example != 10 {
 ```
 
 #### Pointers
-
+---
 A pointer is a value pointing to a address, pointers have multiple use cases and is a core part of low level programming.
 
 Example:
@@ -162,7 +162,7 @@ let num_ptr -> ptr = &num; # reference #
 ```
 
 #### Dereferencing
-
+---
 In Langin pointers does not specify what type they are pointing to, this means the user will have to keep track of this when dereferencing a pointer.
 
 Example:
@@ -172,6 +172,7 @@ int[num_ptr] = 69;
 ```
 
 #### Types
+---
 
 | Type    | Description                                                                                  |
 | ---     | ---                                                                                          |
@@ -180,6 +181,7 @@ int[num_ptr] = 69;
 | `void`  | 0 bit type.                                                          |
 
 #### Operators
+---
 
 | Op    | Description                                                                                  |
 | ---     | ---                                                                                          |
@@ -189,6 +191,7 @@ int[num_ptr] = 69;
 | `/`  | divide a value with another value.                                                          |
 
 #### Comparison
+---
 
 | Op    | Description                                                                                  |
 | ---     | ---                                                                                          |

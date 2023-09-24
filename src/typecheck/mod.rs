@@ -48,7 +48,6 @@ impl TypeChecker {
                 }
                 Ok(function.0.clone())
             },
-            Value::Int(_) => Ok(Type::Int),
             Value::Ident(ident) => {
                 if let Some(value_t) = self.variables.get(ident) {
                     Ok(value_t.clone())
@@ -65,6 +64,8 @@ impl TypeChecker {
             },
             Value::Cast(_, cast_type) => Ok(cast_type.clone()),
             Value::Ref(_) => Ok(Type::Ptr),
+            Value::Str(_) => Ok(Type::Ptr),
+            Value::Int(_) => Ok(Type::Int),
             Value::Null => Ok(Type::Void),
         };
     }

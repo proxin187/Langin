@@ -19,12 +19,14 @@ fn cli() -> Argin {
     args.add_positional_arg();
     args.add_positional_arg();
     args.add_flag("-r");
+    args.add_flag("-o");
     return args.parse();
 }
 
 fn help() {
     println!("Usage: ./langin [FILE] [OPTIONS]");
     println!("    -r: run the final executable");
+    println!("    -o: optimizations");
 }
 
 fn error(error: &Box<dyn std::error::Error>) -> bool {

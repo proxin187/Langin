@@ -58,6 +58,7 @@ pub enum Value {
     Deref(Box<Value>, Type),
     Ref(Box<Value>),
     Int(usize),
+    Str(String),
     Ident(String),
     Null,
 }
@@ -150,6 +151,8 @@ impl Ast {
             return Ok(Value::Int(integer));
         } else if let Ok(ident) = tokens[index].is_ident() {
             return Ok(Value::Ident(ident));
+        } else if let Ok(string) = tokens[index].is_section("string") {
+            return Ok(Value::Str(string));
         } else if let Ok(deref_type) = Self::is_type(tokens[index].clone()) {
             // DEREFERENCE
             let loc = tokens[index].loc();

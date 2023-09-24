@@ -4,7 +4,7 @@ square :: (num -> int) -> int {
 }
 
 main :: () -> int {
-    let test -> int = square(2 + 3);
+    let sum -> int = square(2 + 3);
     return 0;
 }
 

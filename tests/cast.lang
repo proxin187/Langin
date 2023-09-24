@@ -2,6 +2,7 @@
 
 main :: () -> int {
     let null -> ptr = ptr(0);
+    let num -> int = int(null);
     return 0;
 }
 

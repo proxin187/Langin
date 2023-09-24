@@ -1,5 +1,4 @@
 
-
 main :: () -> int {
     let test -> int = 0;
     while test != 10 {
