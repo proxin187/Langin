@@ -1,4 +1,5 @@
 use crate::ast::*;
+use crate::escape;
 use std::io::prelude::*;
 use std::io::BufWriter;
 use std::fs::File;
@@ -56,8 +57,7 @@ impl CodeGen {
         self.buffer.write(b"    syscall\n")?;
         self.buffer.write(b"segment readable writeable\n")?;
         for (index, value) in self.strings.iter().enumerate() {
-            println!("STRING: {}", value);
-            write!(self.buffer, "str_{} db \"{}\", 0", index, value)?;
+            write!(self.buffer, "str_{} db \"{}\", 0", index, escape::output_string_asm(value))?;
         }
         return Ok(());
     }

@@ -1,0 +1,6 @@
+
+squared :: (num -> int) -> int {
+    return num * num;
+}
+
+

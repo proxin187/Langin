@@ -7,6 +7,6 @@ edition = "2021"
 
 [dependencies]
 argin = "0.1.0"
-lib-lexin = "0.1.1"
+lib-lexin = "0.1.2"
 
 

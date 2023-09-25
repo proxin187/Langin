@@ -18,6 +18,6 @@ dependencies = [
 
 [[package]]
 name = "lib-lexin"
-version = "0.1.1"
+version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3868450255cccbf720509145bad01ddcb13640bdd7ebd625f6b83883877efd38"
+checksum = "4149a678f3de1dfd8cecdd196d7a47d6debf625c93955d8dd31913bdfa4349fb"

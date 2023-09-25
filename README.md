@@ -170,6 +170,14 @@ Example:
 let dereferenced -> int = int[num_ptr];
 int[num_ptr] = 69;
 ```
+#### Include
+---
+Include is a keyword used to include libraries into your program, include takes a path and extends it like a macro into your program.
+
+Example:
+```
+include "std/lib.lang"
+```
 
 #### Types
 ---

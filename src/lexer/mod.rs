@@ -8,6 +8,7 @@ pub fn lex(file: &str) -> Result<Vec<Token>, Box<dyn std::error::Error>> {
             "if",
             "else",
             "while",
+            "include",
 
             // Types
             "int",

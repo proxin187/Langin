@@ -1,5 +1,5 @@
 use lib_lexin::Token;
-use crate::log_color;
+use crate::{log_color, generate_ast};
 
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -729,6 +729,19 @@ impl Ast {
                     ptr: Self::expr(&ptr, loc)?,
                     value: Self::expr(&value, loc)?,
                 });
+            } else if tokens[index].is_keyword("include").is_ok() {
+                // INCLUDE
+                let loc = tokens[index].loc();
+
+                Self::bound_check(tokens, &mut index, "string")?;
+
+                let include_path = if let Ok(string) = tokens[index].is_section("string") {
+                    string
+                } else {
+                    return Err(format!("{} expected `string`", log_color(loc)).into());
+                };
+
+                ast.extend(generate_ast(&include_path));
             } else if tokens[index].is_section("comment").is_ok() {
                 // skip the comment
             }
