@@ -110,6 +110,11 @@ pub enum Ast {
         comparison: Comparison,
         body: Vec<Ast>,
     },
+
+    InlineAsm {
+        loc: (usize, usize),
+        asm: String,
+    },
 }
 
 
@@ -742,6 +747,33 @@ impl Ast {
                 };
 
                 ast.extend(generate_ast(&include_path));
+            } else if tokens[index].is_keyword("asm").is_ok() {
+                // INLINE ASM
+                let loc = tokens[index].loc();
+
+                Self::bound_check(tokens, &mut index, "OpenParen")?;
+                if tokens[index].is_symbol("OpenParen").is_err() {
+                    return Err(format!("{} expected `(` in function call", log_color(loc)).into());
+                }
+
+                Self::bound_check(tokens, &mut index, "CloseParen")?;
+
+                let asm = match tokens[index].is_section("string") {
+                    Ok(string) => string,
+                    Err(_) => {
+                        return Err(format!("{} expected `string` in inline assembly", log_color(loc)).into());
+                    },
+                };
+
+                Self::bound_check(tokens, &mut index, "CloseParen")?;
+                Self::bound_check(tokens, &mut index, "SemiColon")?;
+
+                Self::double_symbol((tokens[index - 1].clone(), "CloseParen"), (tokens[index].clone(), "SemiColon"))?;
+
+                ast.push(Ast::InlineAsm {
+                    loc,
+                    asm,
+                });
             } else if tokens[index].is_section("comment").is_ok() {
                 // skip the comment
             }

@@ -141,6 +141,7 @@ impl TypeChecker {
                     self.comparison_check(&comparison, loc.clone())?;
                     self.check(body, true)?;
                 },
+                Ast::InlineAsm {..} => {},
             }
             index += 1;
         }

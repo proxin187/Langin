@@ -178,6 +178,14 @@ Example:
 ```
 include "std/lib.lang"
 ```
+#### Inline Assembly
+---
+Inline assembly is used to embed assembly into your code, inline assembly is unsafe and should only be used in developing libraries and not directly into the program, the only assembly flavor currently supported is linux-x86_64-fasm.
+
+Example:
+```
+asm("mov rax, 1");
+```
 
 #### Types
 ---

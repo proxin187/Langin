@@ -257,6 +257,9 @@ impl CodeGen {
                     write!(self.buffer, "BB_{}:\n", self.block_count + 2)?;
                     self.block_count += 2;
                 },
+                Ast::InlineAsm {asm, ..} => {
+                    write!(self.buffer, "{}\n", asm)?;
+                },
             }
         }
 

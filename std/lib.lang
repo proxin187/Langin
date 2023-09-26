@@ -1,6 +1,14 @@
 
-squared :: (num -> int) -> int {
-    return num * num;
+
+write :: (fd -> int, buf -> ptr, size -> int) -> int {
+    let result -> int = 0;
+    asm("mov rax, 1");
+    asm("mov rdi, [rbp-8]");
+    asm("mov rsi, [rbp-16]");
+    asm("mov rdx, [rbp-24]");
+    asm("syscall");
+    asm("mov [rbp-32], rax");
+    return result;
 }
 
 
