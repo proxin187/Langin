@@ -1,0 +1,16 @@
+# This part of the standard library defines string manupilation functions such as strlen #
+
+strlen :: (string1 -> ptr) -> int {
+    let len -> int = 0;
+
+    let loop -> int = 0;
+    while loop == 0 {
+        let char_code -> int = int[ptr(int(string1) + len)]; # Index into the string#
+        if char_code == 0 {
+            loop = 1; # Exit Loop #
+        }
+        len = len + 1;
+    }
+}
+
+

@@ -75,6 +75,8 @@ fn generate_ast(file: &str) -> Vec<ast::Ast> {
 
     let parsed = parsed.unwrap();
 
+    println!("\nAST: {:#?}\n", parsed);
+
     let mut typechecker = typecheck::TypeChecker::new();
     let _ = typechecker.check(&parsed, false).is_err_and(|err| error_no_log(&err));
 

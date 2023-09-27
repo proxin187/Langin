@@ -1,6 +1,7 @@
+# This part of the standard library defines system functions such as syscalls #
 
 
-write :: (fd -> int, buf -> ptr, size -> int) -> int {
+sys_write :: (fd -> int, buf -> ptr, size -> int) -> int {
     let result -> int = 0;
     asm("mov rax, 1");
     asm("mov rdi, [rbp-8]");

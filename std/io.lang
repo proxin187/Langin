@@ -1,0 +1,10 @@
+# This part of the standard library defines io functions such as print #
+
+include "std/sys.lang"
+include "std/str.lang"
+
+print :: (string -> ptr) -> int {
+    return sys_write(1, string, strlen(string));
+}
+
+

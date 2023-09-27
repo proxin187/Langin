@@ -264,7 +264,9 @@ impl CodeGen {
         }
 
         // drop variables created in the current scope
+        println!("vars: {:?}", self.variables);
         for var in local_vars {
+            println!("VAR: {}", var);
             let size = self.variables.remove(&var).unwrap().1;
             self.stack_offset -= size;
         }

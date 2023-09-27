@@ -164,23 +164,31 @@ impl Ast {
 
             Self::bound_check(tokens, &mut index, "OpenBracket")?;
 
-            let seperator_name = if tokens[index].is_symbol("OpenBracket").is_ok() {
-                "CloseBracket"
+            let dereference: bool;
+            let value = if tokens[index].is_symbol("OpenBracket").is_ok() {
+                dereference = true;
+                Self::bound_check(tokens, &mut index, "CloseBracket")?;
+                println!("\ncheck69: {:?}\n", tokens);
+                Self::scope(tokens, &mut index, "OpenBracket", "CloseBracket")?
             } else if tokens[index].is_symbol("OpenParen").is_ok() {
-                "CloseParen"
+                dereference = false;
+                Self::bound_check(tokens, &mut index, "CloseParen")?;
+                println!("check");
+                Self::scope(tokens, &mut index, "OpenParen", "CloseParen")?
             } else {
                 return Err(format!("{} expected `OpenBracket`", log_color(loc)).into());
             };
+            println!("check420");
 
-            Self::bound_check(tokens, &mut index, seperator_name)?;
+            // Self::bound_check(tokens, &mut index, seperator_name)?;
 
-            let mut value: Vec<Token> = Vec::new();
-            while tokens[index].is_symbol(seperator_name).is_err() {
-                value.push(tokens[index].clone());
-                Self::bound_check(tokens, &mut index, seperator_name)?;
-            }
+            //let mut value: Vec<Token> = Vec::new();
+            //while tokens[index].is_symbol(seperator_name).is_err() {
+            //    value.push(tokens[index].clone());
+            //    Self::bound_check(tokens, &mut index, seperator_name)?;
+            //}
 
-            if seperator_name == "CloseBracket" { // DEREFERENCE
+            if dereference {
                 return Ok(Value::Deref(Box::new(Self::expr(&value, loc)?), Self::str_to_type(deref_type)));
             } else { // CAST
                 return Ok(Value::Cast(Box::new(Self::expr(&value, loc)?), Self::str_to_type(deref_type)));
@@ -204,9 +212,15 @@ impl Ast {
     }
 
     fn is_binary_expr(tokens: &Vec<Token>) -> bool {
+        let mut scope_c = 0;
         let mut index = 0;
         while index < tokens.len() {
-            if Self::is_operator(&tokens[index].clone(), tokens[index].loc()).is_ok() {
+            if tokens[index].is_symbol("OpenParen").is_ok() || tokens[index].is_symbol("OpenBracket").is_ok() {
+                scope_c += 1;
+            } else if tokens[index].is_symbol("CloseParen").is_ok() || tokens[index].is_symbol("CloseBracket").is_ok() {
+                scope_c -= 1;
+            }
+            if Self::is_operator(&tokens[index].clone(), tokens[index].loc()).is_ok() && scope_c == 0 {
                 return true;
             }
             index += 1; // intentional
@@ -229,30 +243,7 @@ impl Ast {
             return Err(format!("{} empty expression", log_color(loc)).into());
         }
 
-        if Self::is_function_call(tokens) {
-            // FUNCTION CALL
-            let loc = tokens[index].loc();
-            let name = tokens[index].is_ident()?;
-
-            Self::bound_check(tokens, &mut index, "OpenParen")?;
-            if tokens[index].is_symbol("OpenParen").is_err() {
-                return Err(format!("{} expected `(` in function call", log_color(loc)).into());
-            }
-
-            Self::bound_check(tokens, &mut index, "CloseParen")?;
-
-            let mut params: Vec<Token> = Vec::new();
-            while tokens[index].is_symbol("CloseParen").is_err() {
-                params.push(tokens[index].clone());
-                Self::bound_check(tokens, &mut index, "CloseParen")?;
-            }
-
-            return Ok(Value::FunctionCall {
-                loc,
-                name,
-                params: Self::parse_call_params(&params)?,
-            });
-        } else if Self::is_binary_expr(tokens) {
+       if Self::is_binary_expr(tokens) {
             // l_expr [operator] r_expr
             let loc = tokens[index].loc();
             let mut l_expr: Vec<Token> = Vec::new();
@@ -280,6 +271,30 @@ impl Ast {
                 r_expr: Box::new(Self::expr(&r_expr, r_loc)?),
                 op,
             });
+        } else if Self::is_function_call(tokens) {
+            // FUNCTION CALL
+            let loc = tokens[index].loc();
+            let name = tokens[index].is_ident()?;
+
+            Self::bound_check(tokens, &mut index, "OpenParen")?;
+            if tokens[index].is_symbol("OpenParen").is_err() {
+                return Err(format!("{} expected `(` in function call", log_color(loc)).into());
+            }
+
+            Self::bound_check(tokens, &mut index, "CloseParen")?;
+
+            //let mut params: Vec<Token> = Vec::new();
+            //while tokens[index].is_symbol("CloseParen").is_err() {
+            //    params.push(tokens[index].clone());
+            //    Self::bound_check(tokens, &mut index, "CloseParen")?;
+            //}
+            let params = Self::scope(tokens, &mut index, "OpenParen", "CloseParen")?;
+
+            return Ok(Value::FunctionCall {
+                loc,
+                name,
+                params: Self::parse_call_params(&params)?,
+            });
         } else {
             // SINGLE EXPR
             return Self::single_expr(tokens, loc);
@@ -292,6 +307,7 @@ impl Ast {
         let mut param: Vec<Token> = Vec::new();
 
         while index < tokens.len() {
+            // NOTE: ADD SUPPORT FOR NESTING CALLS WITH MULTIPLE ARGS
             if tokens[index].is_symbol("Comma").is_ok() {
                 params.push(Self::expr(&param, tokens[index - param.len()].loc())?);
                 param = Vec::new();
@@ -361,19 +377,19 @@ impl Ast {
         return Ok((name, Self::str_to_type(name_t)));
     }
 
-    fn scope(tokens: &Vec<Token>, index: &mut usize) -> Result<Vec<Token>, Box<dyn std::error::Error>> {
+    fn scope(tokens: &Vec<Token>, index: &mut usize, open: &str, close: &str) -> Result<Vec<Token>, Box<dyn std::error::Error>> {
         let mut scope_c = 0;
         let mut scope: Vec<Token> = Vec::new();
 
-        while (tokens[*index].is_symbol("CloseBrace").is_err() && scope_c == 0) || scope_c != 0 {
-            if tokens[*index].is_symbol("OpenBrace").is_ok() {
+        while (tokens[*index].is_symbol(close).is_err() && scope_c == 0) || scope_c != 0 {
+            if tokens[*index].is_symbol(open).is_ok() {
                 scope_c += 1;
-            } else if tokens[*index].is_symbol("CloseBrace").is_ok() {
+            } else if tokens[*index].is_symbol(close).is_ok() {
                 scope_c -= 1;
             }
             scope.push(tokens[*index].clone());
 
-            Self::bound_check(tokens, index, "CloseBrace")?;
+            Self::bound_check(tokens, index, close)?;
         }
 
         return Ok(scope);
@@ -521,7 +537,7 @@ impl Ast {
                     Self::bound_check(tokens, &mut index, "CloseBrace")?;
 
                     // { }
-                    let body = Self::scope(tokens, &mut index)?;
+                    let body = Self::scope(tokens, &mut index, "OpenBrace", "CloseBrace")?;
 
                     ast.push(Ast::Function {
                         loc,
@@ -606,7 +622,7 @@ impl Ast {
                 Self::bound_check(tokens, &mut index, "CloseBrace")?;
 
                 // { }
-                let body = Self::scope(tokens, &mut index)?;
+                let body = Self::scope(tokens, &mut index, "OpenBrace", "CloseBrace")?;
 
                 // no bound check because it will error if the if statement is at the end
                 index += 1;
@@ -661,7 +677,7 @@ impl Ast {
                     } else {
                         Self::bound_check(tokens, &mut index, "CloseBrace")?;
 
-                        else_body = Self::scope(tokens, &mut index)?;
+                        else_body = Self::scope(tokens, &mut index, "OpenBrace", "CloseBrace")?;
                     }
                     ast.push(Ast::If {
                         loc,
@@ -687,7 +703,7 @@ impl Ast {
                 Self::bound_check(tokens, &mut index, "CloseBrace")?;
 
                 // { }
-                let body = Self::scope(tokens, &mut index)?;
+                let body = Self::scope(tokens, &mut index, "OpenBrace", "CloseBrace")?;
 
                 ast.push(Ast::While {
                     loc,
@@ -707,11 +723,12 @@ impl Ast {
                 Self::bound_check(tokens, &mut index, "Value")?;
 
                 // [ptr]
-                let mut ptr: Vec<Token> = Vec::new();
-                while tokens[index].is_symbol("CloseBracket").is_err() {
-                    ptr.push(tokens[index].clone());
-                    Self::bound_check(tokens, &mut index, "CloseBracket")?;
-                }
+                //let mut ptr: Vec<Token> = Vec::new();
+                //while tokens[index].is_symbol("CloseBracket").is_err() {
+                //    ptr.push(tokens[index].clone());
+                //    Self::bound_check(tokens, &mut index, "CloseBracket")?;
+                //}
+                let ptr = Self::scope(tokens, &mut index, "OpenBracket", "CloseBracket")?;
 
                 // =
                 Self::bound_check(tokens, &mut index, "Equal")?;
