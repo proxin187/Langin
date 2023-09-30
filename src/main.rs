@@ -6,6 +6,9 @@ mod escape;
 
 use argin::Argin;
 use std::process;
+use std::collections::HashMap;
+use std::fs::File;
+use std::io::BufWriter;
 
 const RED: &'static str = "\x1b[1;31m";
 const YELLOW: &'static str = "\x1b[1;33m";
@@ -75,13 +78,14 @@ fn generate_ast(file: &str) -> Vec<ast::Ast> {
 
     let parsed = parsed.unwrap();
 
-    println!("\nAST: {:#?}\n", parsed);
+    // println!("\nAST: {:#?}\n", parsed);
 
     let mut typechecker = typecheck::TypeChecker::new();
     let _ = typechecker.check(&parsed, false).is_err_and(|err| error_no_log(&err));
 
     return parsed;
 }
+
 
 fn main() {
     let args = cli();
@@ -94,8 +98,6 @@ fn main() {
     };
 
     let parsed = generate_ast(&file);
-
-    // println!("ast: {:#?}", parsed);
 
     println!("[INFO]: generating linux-x86_64-fasm");
     let mut codegen = match asm::CodeGen::new(&file) {

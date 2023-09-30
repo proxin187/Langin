@@ -66,13 +66,18 @@ impl CodeGen {
         return match value {
             Value::FunctionCall {name, params, ..} => {
                 self.buffer.write(b"    ;; -- FUNCTION CALL --\n")?;
-                for (index, parameter) in params.iter().enumerate() {
+                let mut parameter_values: Vec<usize> = Vec::new();
+                for parameter in params.iter() {
                     let val = self.value(parameter)?;
-                    if val.0 != REGISTERS[index] {
-                        write!(self.buffer, "    mov {}, {}\n", REGISTERS[index], val.0)?;
-                    }
+                    let val_offset = self.val_is_on_stack(val)?;
+                    parameter_values.push(val_offset);
                 }
+                for (index, param) in parameter_values.iter().enumerate() {
+                    write!(self.buffer, "    mov {}, [rbp-{}]\n", REGISTERS[index], param)?;
+                }
+                write!(self.buffer, "    sub rsp, {}\n", self.stack_offset)?;
                 write!(self.buffer, "    call {}\n", name)?;
+                write!(self.buffer, "    add rsp, {}\n", self.stack_offset)?;
                 return Ok((format!("rax"), "reg".to_string()));
             },
             Value::BinaryExpr {l_expr, r_expr, op, ..} => {
@@ -184,23 +189,35 @@ impl CodeGen {
         for instruction in ast {
             match instruction {
                 Ast::Function {name, param_t, body, ..} => {
+                    // preparation
                     let old_fn = self.current_fn.clone();
                     self.current_fn = name.clone();
+
+                    // stack frame preparation
                     self.buffer.write(b"    ;; -- FUNCTION --\n")?;
                     write!(self.buffer, "{}:\n", name)?;
                     self.buffer.write(b"    push rbp\n")?;
                     self.buffer.write(b"    mov rbp, rsp\n")?;
+
+                    // load parameters onto the stack
                     for (index, parameter) in param_t.iter().enumerate() {
                         self.stack_offset += parameter.1.size();
                         write!(self.buffer, "    mov [rbp-{}], {}\n", self.stack_offset, REGISTERS[index])?;
                         self.variables.insert(parameter.0.clone(), (self.stack_offset, parameter.1.size()));
                         local_vars.push(parameter.0.clone());
                     }
+
+                    // body
                     self.generate(body, false)?;
+
+                    // return
                     write!(self.buffer, "{}_ret:\n", name)?;
                     self.buffer.write(b"    pop rbp\n")?;
                     self.buffer.write(b"    ret\n")?;
+
+                    // retreving old values from previous scope
                     self.current_fn = old_fn;
+                    local_vars = Vec::new();
                 },
                 Ast::Return {value, ..} => {
                     self.buffer.write(b"    ;; -- RETURN --\n")?;
@@ -209,19 +226,27 @@ impl CodeGen {
                     write!(self.buffer, "    jmp {}_ret\n", self.current_fn)?;
                 },
                 Ast::Variable {name, var_t, value, ..} => {
-                    self.buffer.write(b"    ;; -- VARIABLE --\n")?;
+                    // stack preparation
                     self.stack_offset += var_t.size();
+
+                    self.buffer.write(b"    ;; -- VARIABLE --\n")?;
                     let value = self.value(value)?;
+
+                    // make sure value is in register before moving it onto the stack
                     let val_reg = self.val_is_in_reg(value)?;
                     write!(self.buffer, "    mov qword [rbp-{}], {}\n", self.stack_offset, val_reg)?;
+
+                    // append variables
                     self.variables.insert(name.clone(), (self.stack_offset, var_t.size()));
                     local_vars.push(name.clone());
                 },
                 Ast::MutateVar {name, value, ..} => {
                     self.buffer.write(b"    ;; -- MUTATE VARIABLE --\n")?;
                     let value = self.value(value)?;
+
+                    // make sure value is in register before moving it onto the stack
                     let val_reg = self.val_is_in_reg(value)?;
-                    write!(self.buffer, "    mov qword [rbp-{}], {}\n", self.variables.get(name).unwrap().0, val_reg)?;
+                    write!(self.buffer, "    mov qword [rbp-{}], {}\n", self.variables.get(name).expect("internal compiler error").0, val_reg)?;
                 },
                 Ast::MutatePtr {ptr, value, ..} => {
                     self.buffer.write(b"    ;; -- MUTATE POINTER --\n")?;
@@ -238,23 +263,50 @@ impl CodeGen {
                 Ast::If {comparison, body, else_body, ..} => {
                     self.block_count += 1;
                     self.buffer.write(b"    ;; -- IF --\n")?;
+
+                    // comparison
                     let jump = self.comparison(comparison)?;
+
+                    // jump to exit block if false
                     write!(self.buffer, "    {} BB_{}\n", jump, self.block_count)?;
+
+                    // body
                     self.generate(body, false)?;
+
+                    // jump to exit block
                     write!(self.buffer, "    jmp BB_{}\n", self.block_count + 1)?;
                     write!(self.buffer, "BB_{}:\n", self.block_count)?;
+
+                    // else body
                     self.generate(else_body, false)?;
+
+                    // exit block
                     self.block_count += 1;
                     write!(self.buffer, "BB_{}:\n", self.block_count)?;
                 },
                 Ast::While {comparison, body, ..} => {
                     self.buffer.write(b"    ;; -- WHILE --\n")?;
-                    write!(self.buffer, "BB_{}:\n", self.block_count + 1)?;
+
+                    // entry block
+                    self.block_count += 1;
+                    let start_label = self.block_count;
+                    write!(self.buffer, "BB_{}:\n", self.block_count)?;
+
+                    // comparison
                     let jump = self.comparison(comparison)?;
-                    write!(self.buffer, "    {} BB_{}\n", jump, self.block_count + 2)?;
+
+                    self.block_count += 1;
+                    let exit_label = self.block_count;
+                    write!(self.buffer, "    {} BB_{}\n", jump, exit_label)?;
+
+                    // body
                     self.generate(body, false)?;
-                    write!(self.buffer, "    jmp BB_{}\n", self.block_count + 1)?;
-                    write!(self.buffer, "BB_{}:\n", self.block_count + 2)?;
+
+                    // jump to entry block
+                    write!(self.buffer, "    jmp BB_{}\n", start_label)?;
+
+                    // exit block
+                    write!(self.buffer, "BB_{}:\n", exit_label)?;
                     self.block_count += 2;
                 },
                 Ast::InlineAsm {asm, ..} => {
@@ -264,11 +316,9 @@ impl CodeGen {
         }
 
         // drop variables created in the current scope
-        println!("vars: {:?}", self.variables);
-        for var in local_vars {
-            println!("VAR: {}", var);
-            let size = self.variables.remove(&var).unwrap().1;
-            self.stack_offset -= size;
+        for var in &local_vars {
+            let size = self.variables.remove(var).expect("internal compiler error");
+            self.stack_offset -= size.1;
         }
 
         if entry {

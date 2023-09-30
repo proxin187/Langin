@@ -168,17 +168,14 @@ impl Ast {
             let value = if tokens[index].is_symbol("OpenBracket").is_ok() {
                 dereference = true;
                 Self::bound_check(tokens, &mut index, "CloseBracket")?;
-                println!("\ncheck69: {:?}\n", tokens);
                 Self::scope(tokens, &mut index, "OpenBracket", "CloseBracket")?
             } else if tokens[index].is_symbol("OpenParen").is_ok() {
                 dereference = false;
                 Self::bound_check(tokens, &mut index, "CloseParen")?;
-                println!("check");
                 Self::scope(tokens, &mut index, "OpenParen", "CloseParen")?
             } else {
                 return Err(format!("{} expected `OpenBracket`", log_color(loc)).into());
             };
-            println!("check420");
 
             // Self::bound_check(tokens, &mut index, seperator_name)?;
 
